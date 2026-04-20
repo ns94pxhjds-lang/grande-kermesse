@@ -6,6 +6,9 @@
     <title>GRANDE KERMESSE SCOLAIRE 2026 - LMAT Aboisso</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
     <style>
         /* ==================== VARIABLES & RESET ==================== */
         :root {
@@ -142,12 +145,6 @@
             50% { border-color: var(--neon-pink); }
             75% { border-color: var(--neon-purple); }
             100% { border-color: var(--primary); }
-        }
-
-        @keyframes glitchText {
-            0% { text-shadow: 2px 0 #ff006e, -2px 0 #00f5ff; }
-            50% { text-shadow: -2px 0 #ff006e, 2px 0 #00f5ff; }
-            100% { text-shadow: 2px 0 #ff006e, -2px 0 #00f5ff; }
         }
 
         /* ==================== BACKGROUND & PARTICLES ==================== */
@@ -1397,132 +1394,6 @@
             font-weight: 700;
         }
 
-        /* ==================== CAMERA SCANNER ==================== */
-        .camera-scanner {
-            position: relative;
-            background: black;
-            border-radius: 25px;
-            overflow: hidden;
-            margin-top: 22px;
-            display: none;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
-        }
-
-        #camera-stream {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .camera-overlay {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-        }
-
-        .scan-crosshair {
-            width: 220px;
-            height: 220px;
-            border: 4px solid var(--success);
-            border-radius: 25px;
-            position: relative;
-            animation: scanPulse 2.2s infinite;
-            box-shadow: inset 0 0 25px rgba(0, 255, 153, 0.4);
-        }
-
-        .scan-crosshair::before {
-            content: '';
-            position: absolute;
-            width: 35px;
-            height: 35px;
-            border: 3px solid var(--success);
-            top: -22px;
-            left: -22px;
-            border-right: none;
-            border-bottom: none;
-        }
-
-        .scan-crosshair::after {
-            content: '';
-            position: absolute;
-            width: 35px;
-            height: 35px;
-            border: 3px solid var(--success);
-            bottom: -22px;
-            right: -22px;
-            border-left: none;
-            border-top: none;
-        }
-
-        .camera-controls {
-            position: absolute;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 18px;
-            z-index: 10;
-        }
-
-        .camera-btn {
-            padding: 14px 28px;
-            border: 2px solid var(--success);
-            background: rgba(0, 255, 153, 0.15);
-            color: var(--success);
-            border-radius: 28px;
-            cursor: pointer;
-            font-weight: 800;
-            transition: all 0.4s ease;
-            font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .camera-btn:hover {
-            background: var(--success);
-            color: var(--dark);
-            box-shadow: 0 0 25px rgba(0, 255, 153, 0.6);
-            transform: scale(1.05);
-        }
-
-        #scan-result,
-        #camera-scan-result {
-            margin-top: 22px;
-            font-weight: 800;
-            font-size: 1.15rem;
-            padding: 18px;
-            border-radius: 14px;
-            display: none;
-            animation: slideIn 0.5s ease-out;
-        }
-
-        #scan-result.success,
-        #camera-scan-result.success {
-            background: rgba(0, 255, 153, 0.15);
-            color: var(--success);
-            border: 2px solid var(--success);
-        }
-
-        #scan-result.error,
-        #camera-scan-result.error {
-            background: rgba(255, 85, 85, 0.15);
-            color: var(--error);
-            border: 2px solid var(--error);
-        }
-
-        #scan-result.fraud,
-        #camera-scan-result.fraud {
-            background: rgba(255, 187, 0, 0.15);
-            color: var(--warning);
-            border: 2px solid var(--warning);
-        }
-
         /* ==================== NOTIFICATIONS & ALERTS ==================== */
         .notification {
             position: fixed;
@@ -2118,7 +1989,7 @@
 
                     <p style="color: var(--gold); font-weight: 800; margin-bottom: 14px;">Codes Actifs & Utilisés:</p>
                     <div class="code-list" id="admin-code-list">
-                        <p style="text-align: center; color: #666;">Aucun code généré.</p>
+                        <p style="text-align: center; color: #666;">Chargement...</p>
                     </div>
                 </div>
 
@@ -2141,31 +2012,7 @@
                     <div id="scan-result" style="margin-top: 20px;"></div>
                 </div>
 
-                <!-- CARD 3: CAMERA SCANNER -->
-                <div class="dash-card">
-                    <h3><i class="fas fa-camera"></i> Scanner QR Code (Caméra)</h3>
-                    <p style="color: var(--light-text); margin-bottom: 18px;">Scannez les QR codes avec votre caméra.</p>
-
-                    <button class="btn-glow" style="width: 100%; justify-content: center; margin-bottom: 18px;" id="toggle-camera-btn" onclick="toggleCameraScanner()">
-                        <i class="fas fa-camera"></i> Activer la Caméra
-                    </button>
-
-                    <div class="camera-scanner" id="camera-scanner">
-                        <video id="camera-stream" autoplay playsinline></video>
-                        <div class="camera-overlay">
-                            <div class="scan-crosshair"></div>
-                        </div>
-                        <div class="camera-controls">
-                            <button class="camera-btn" onclick="toggleCameraScanner()">
-                                <i class="fas fa-times"></i> Fermer
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="camera-scan-result" style="margin-top: 20px;"></div>
-                </div>
-
-                <!-- CARD 4: STATISTICS -->
+                <!-- CARD 3: STATISTICS -->
                 <div class="dash-card">
                     <h3><i class="fas fa-chart-pie"></i> Statistiques</h3>
 
@@ -2176,24 +2023,34 @@
                         </div>
 
                         <div style="background: rgba(0, 229, 255, 0.1); padding: 18px; border-radius: 12px; border-left: 5px solid var(--accent);">
-                            <p style="color: var(--light-text); font-size: 0.92rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Billets Scanés</p>
-                            <p style="color: var(--accent); font-size: 2.5rem; font-weight: 900;" id="stat-scanned">0</p>
+                            <p style="color: var(--light-text); font-size: 0.92rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Codes Générés</p>
+                            <p style="color: var(--accent); font-size: 2.5rem; font-weight: 900;" id="stat-codes">0</p>
                         </div>
 
                         <div style="background: rgba(255, 85, 85, 0.1); padding: 18px; border-radius: 12px; border-left: 5px solid var(--error);">
-                            <p style="color: var(--light-text); font-size: 0.92rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Tentatives Frauduleuses</p>
-                            <p style="color: var(--error); font-size: 2.5rem; font-weight: 900;" id="stat-fraud">0</p>
+                            <p style="color: var(--light-text); font-size: 0.92rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Codes Utilisés</p>
+                            <p style="color: var(--error); font-size: 2.5rem; font-weight: 900;" id="stat-used">0</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- CARD 5: SCAN HISTORY -->
+                <!-- CARD 4: SCAN HISTORY -->
                 <div class="dash-card">
-                    <h3><i class="fas fa-history"></i> Historique des Scans</h3>
-                    <p style="color: var(--light-text); margin-bottom: 14px; font-size: 0.95rem;">Derniers billets validés.</p>
+                    <h3><i class="fas fa-history"></i> Historique des Billets</h3>
+                    <p style="color: var(--light-text); margin-bottom: 14px; font-size: 0.95rem;">Derniers billets générés.</p>
 
                     <div class="scan-history" id="scan-history-log">
-                        <p style="text-align: center; color: #666;">Aucun scan pour le moment.</p>
+                        <p style="text-align: center; color: #666;">Chargement...</p>
+                    </div>
+                </div>
+
+                <!-- CARD 5: CODES LIST -->
+                <div class="dash-card">
+                    <h3><i class="fas fa-list"></i> Tous les Codes</h3>
+                    <p style="color: var(--light-text); margin-bottom: 14px; font-size: 0.95rem;">Liste complète des codes et utilisateurs.</p>
+
+                    <div class="scan-history" id="all-codes-log">
+                        <p style="text-align: center; color: #666;">Chargement...</p>
                     </div>
                 </div>
             </div>
@@ -2203,24 +2060,30 @@
     <!-- ==================== JAVASCRIPT ==================== -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
+        // ==================== FIREBASE CONFIG ==================== 
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-pK0r0P9x8q2L5z9m3n5p7r9t1v3x5z",
+            authDomain: "lmat-kermesse-2026.firebaseapp.com",
+            projectId: "lmat-kermesse-2026",
+            storageBucket: "lmat-kermesse-2026.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890abcdef"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const dbRefs = {
+            codes: database.ref('codes'),
+            tickets: database.ref('tickets'),
+            history: database.ref('history')
+        };
+
         // ==================== INITIALIZATION ====================
         const ADMIN_PIN = "2250";
         const WHATSAPP_NUMBER = "2250171489791";
         const EVENT_DATE = new Date("2026-05-15T08:00:00").getTime();
 
-        // Artists & Sponsors
-        const artists = [
-            { name: "AZAZOU SATELLITE", role: "Artiste Multi-Talent" },
-            { name: "DJ MARCO DENON", role: "Maître des Platines" },
-            { name: "ADM LA MELO", role: "Artiste Émergeant" }
-        ];
-
-        const sponsor = {
-            name: "DR ABOUBAKARI CISSÉ",
-            role: "Parrain Principal"
-        };
-
-        // Autographe messages
         const autographeMessages = [
             "Kassi Ange a acheté un passe VIP! 🎉",
             "Jean-Luc a acheté un passe VVIP! 👑",
@@ -2235,17 +2098,6 @@
         ];
 
         let currentAutographeIndex = 0;
-
-        // Initialize localStorage
-        if (!localStorage.getItem('kermesse_codes')) {
-            localStorage.setItem('kermesse_codes', JSON.stringify([]));
-        }
-        if (!localStorage.getItem('kermesse_tickets')) {
-            localStorage.setItem('kermesse_tickets', JSON.stringify([]));
-        }
-        if (!localStorage.getItem('kermesse_scan_history')) {
-            localStorage.setItem('kermesse_scan_history', JSON.stringify([]));
-        }
 
         // Generate particles
         function generateParticles() {
@@ -2284,7 +2136,7 @@
         setInterval(updateCountdown, 1000);
         updateCountdown();
 
-        // ==================== AUTOGRAPHE TICKER (5s visible) ==================== 
+        // ==================== AUTOGRAPHE TICKER ==================== 
         function updateAutographe() {
             const ticker = document.getElementById('autographe-ticker');
             document.getElementById('autographe-text').innerText = autographeMessages[currentAutographeIndex];
@@ -2292,19 +2144,6 @@
         }
 
         setInterval(updateAutographe, 20000);
-
-        // ==================== NAVIGATION ====================
-        function switchView(viewId) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            
-            document.querySelectorAll('.nav-links button').forEach(btn => {
-                if (btn.getAttribute('onclick').includes(viewId)) {
-                    btn.classList.add('active');
-                }
-            });
-        }
 
         // ==================== NOTIFICATIONS ====================
         function showNotification(message, type = 'info', duration = 4500) {
@@ -2343,6 +2182,19 @@
             }
         }
 
+        // ==================== NAVIGATION ====================
+        function switchView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            
+            document.querySelectorAll('.nav-links button').forEach(btn => {
+                if (btn.getAttribute('onclick').includes(viewId)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
         // ==================== WHATSAPP PAYMENT ====================
         function payViaWhatsApp() {
             const nom = document.getElementById('client-name').value.trim();
@@ -2373,62 +2225,80 @@
                 return;
             }
 
-            let codes = JSON.parse(localStorage.getItem('kermesse_codes'));
-            const codeIndex = codes.findIndex(c => c.code === code && !c.used);
+            // Vérifier le code dans Firebase
+            dbRefs.codes.orderByChild('code').equalTo(code).once('value', snapshot => {
+                if (!snapshot.exists()) {
+                    showNotification('❌ Code invalide ou déjà utilisé!', 'error');
+                    return;
+                }
 
-            if (codeIndex === -1) {
-                showNotification('❌ Code invalide ou déjà utilisé!', 'error');
-                return;
-            }
+                let foundCode = false;
+                let codeKey = null;
 
-            codes[codeIndex].used = true;
-            codes[codeIndex].usedBy = nom;
-            codes[codeIndex].usedAt = new Date().toLocaleString('fr-FR');
-            localStorage.setItem('kermesse_codes', JSON.stringify(codes));
+                snapshot.forEach(childSnapshot => {
+                    const codeData = childSnapshot.val();
+                    if (!codeData.used) {
+                        foundCode = true;
+                        codeKey = childSnapshot.key;
+                    }
+                });
 
-            const serial = "TK-" + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+                if (!foundCode) {
+                    showNotification('❌ Ce code a déjà été utilisé!', 'error');
+                    return;
+                }
 
-            let tickets = JSON.parse(localStorage.getItem('kermesse_tickets'));
-            tickets.push({
-                serial: serial,
-                nom: nom,
-                type: type,
-                scanned: false,
-                generatedAt: new Date().toLocaleString('fr-FR')
+                const serial = "TK-" + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+
+                // Marquer le code comme utilisé
+                dbRefs.codes.child(codeKey).update({
+                    used: true,
+                    usedBy: nom,
+                    usedAt: new Date().toLocaleString('fr-FR')
+                });
+
+                // Ajouter le ticket
+                dbRefs.tickets.push({
+                    serial: serial,
+                    nom: nom,
+                    type: type,
+                    scanned: false,
+                    generatedAt: new Date().toLocaleString('fr-FR')
+                });
+
+                // Afficher le ticket
+                document.getElementById('t-name').innerText = nom;
+                document.getElementById('t-type').innerText = type;
+                document.getElementById('t-serial').innerText = serial;
+                document.getElementById('t-serial-large').innerText = serial;
+
+                let categoryBadge = document.getElementById('t-category-badge');
+                if (type.includes('VVIP')) {
+                    categoryBadge.style.background = 'linear-gradient(135deg, #ffd700, #ffaa00)';
+                    categoryBadge.innerText = '👑 VVIP';
+                } else if (type.includes('VIP')) {
+                    categoryBadge.style.background = 'linear-gradient(135deg, #ff8c00, #ff6b00)';
+                    categoryBadge.innerText = '⭐ VIP';
+                } else {
+                    categoryBadge.style.background = 'linear-gradient(135deg, #0088ff, #0066cc)';
+                    categoryBadge.innerText = '🎫 GRAND PUBLIC';
+                }
+
+                const qrData = encodeURIComponent(`LMAT-KERMESSE|${serial}|${nom}|${type}`);
+                document.getElementById('t-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=${qrData}`;
+
+                document.getElementById('final-ticket').style.display = 'block';
+                document.getElementById('download-btn').style.display = 'flex';
+
+                createConfetti();
+                showNotification('🎉 Billet généré avec succès!', 'success', 6000);
+
+                setTimeout(() => {
+                    document.getElementById('final-ticket').scrollIntoView({ behavior: 'smooth' });
+                }, 300);
+
+                updateAutographe();
             });
-            localStorage.setItem('kermesse_tickets', JSON.stringify(tickets));
-
-            document.getElementById('t-name').innerText = nom;
-            document.getElementById('t-type').innerText = type;
-            document.getElementById('t-serial').innerText = serial;
-            document.getElementById('t-serial-large').innerText = serial;
-
-            let categoryBadge = document.getElementById('t-category-badge');
-            if (type.includes('VVIP')) {
-                categoryBadge.style.background = 'linear-gradient(135deg, #ffd700, #ffaa00)';
-                categoryBadge.innerText = '👑 VVIP';
-            } else if (type.includes('VIP')) {
-                categoryBadge.style.background = 'linear-gradient(135deg, #ff8c00, #ff6b00)';
-                categoryBadge.innerText = '⭐ VIP';
-            } else {
-                categoryBadge.style.background = 'linear-gradient(135deg, #0088ff, #0066cc)';
-                categoryBadge.innerText = '🎫 GRAND PUBLIC';
-            }
-
-            const qrData = encodeURIComponent(`LMAT-KERMESSE|${serial}|${nom}|${type}`);
-            document.getElementById('t-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=${qrData}`;
-
-            document.getElementById('final-ticket').style.display = 'block';
-            document.getElementById('download-btn').style.display = 'flex';
-
-            createConfetti();
-            showNotification('🎉 Billet généré avec succès!', 'success', 6000);
-
-            setTimeout(() => {
-                document.getElementById('final-ticket').scrollIntoView({ behavior: 'smooth' });
-            }, 300);
-
-            updateAutographe();
         }
 
         // ==================== DOWNLOAD TICKET ====================
@@ -2508,9 +2378,8 @@
         // ==================== ADMIN: CODE GENERATOR ====================
         function adminGenerateCode() {
             const newCode = "KERM-" + Math.random().toString(36).substring(2, 6).toUpperCase();
-            let codes = JSON.parse(localStorage.getItem('kermesse_codes'));
             
-            codes.push({
+            dbRefs.codes.push({
                 code: newCode,
                 used: false,
                 generatedAt: new Date().toLocaleString('fr-FR'),
@@ -2518,31 +2387,73 @@
                 usedAt: null
             });
 
-            localStorage.setItem('kermesse_codes', JSON.stringify(codes));
-            refreshAdminData();
             showNotification(`✓ Code: ${newCode}`, 'success');
         }
 
         function refreshAdminData() {
-            const codes = JSON.parse(localStorage.getItem('kermesse_codes'));
-            const tickets = JSON.parse(localStorage.getItem('kermesse_tickets'));
-            
-            const codeList = document.getElementById('admin-code-list');
-            codeList.innerHTML = '';
+            // Codes
+            dbRefs.codes.on('value', snapshot => {
+                const codeList = document.getElementById('admin-code-list');
+                const allCodesList = document.getElementById('all-codes-log');
+                codeList.innerHTML = '';
+                allCodesList.innerHTML = '';
 
-            if (codes.length === 0) {
-                codeList.innerHTML = '<p style="text-align: center; color: #666;">Aucun code.</p>';
-            } else {
-                [...codes].reverse().forEach(c => {
-                    const status = c.used 
-                        ? `<span class="status-used">UTILISÉ par ${c.usedBy}</span>` 
-                        : '<span class="status-valid">DISPONIBLE</span>';
-                    codeList.innerHTML += `<div class="code-item"><strong>${c.code}</strong> ${status}</div>`;
+                let codesArray = [];
+                let generatedCount = 0;
+                let usedCount = 0;
+
+                snapshot.forEach(childSnapshot => {
+                    const code = childSnapshot.val();
+                    codesArray.push(code);
+                    generatedCount++;
+                    if (code.used) usedCount++;
                 });
-            }
 
-            document.getElementById('stat-generated').innerText = tickets.length;
-            document.getElementById('stat-scanned').innerText = tickets.filter(t => t.scanned).length;
+                document.getElementById('stat-codes').innerText = generatedCount;
+                document.getElementById('stat-used').innerText = usedCount;
+
+                codesArray.reverse().forEach(code => {
+                    const status = code.used 
+                        ? `<span class="status-used">UTILISÉ par ${code.usedBy}</span>` 
+                        : '<span class="status-valid">DISPONIBLE</span>';
+                    codeList.innerHTML += `<div class="code-item"><strong>${code.code}</strong> ${status}</div>`;
+                    allCodesList.innerHTML += `<div class="code-item"><strong>${code.code}</strong> - ${code.usedBy || 'Non utilisé'}</div>`;
+                });
+
+                if (codesArray.length === 0) {
+                    codeList.innerHTML = '<p style="text-align: center; color: #666;">Aucun code généré.</p>';
+                    allCodesList.innerHTML = '<p style="text-align: center; color: #666;">Aucun code généré.</p>';
+                }
+            });
+
+            // Tickets
+            dbRefs.tickets.on('value', snapshot => {
+                const historyBox = document.getElementById('scan-history-log');
+                historyBox.innerHTML = '';
+
+                let ticketsArray = [];
+                snapshot.forEach(childSnapshot => {
+                    ticketsArray.push(childSnapshot.val());
+                });
+
+                document.getElementById('stat-generated').innerText = ticketsArray.length;
+
+                ticketsArray.reverse().slice(0, 10).forEach(ticket => {
+                    historyBox.innerHTML += `
+                        <div class="scan-item">
+                            <div>
+                                <strong style="color: var(--success);">${ticket.nom}</strong><br>
+                                <small style="color: var(--light-text);">${ticket.type}</small><br>
+                                <small style="color: #666;">${ticket.generatedAt}</small>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                if (ticketsArray.length === 0) {
+                    historyBox.innerHTML = '<p style="text-align: center; color: #666;">Aucun ticket généré.</p>';
+                }
+            });
         }
 
         // ==================== SCANNER ====================
@@ -2555,203 +2466,54 @@
                 return;
             }
 
-            let tickets = JSON.parse(localStorage.getItem('kermesse_tickets'));
-            const ticketIndex = tickets.findIndex(t => t.serial === serial);
-
-            if (ticketIndex === -1) {
-                resultBox.className = 'error';
-                resultBox.innerHTML = '<i class="fas fa-times-circle"></i> ❌ BILLET INTROUVABLE';
-                resultBox.style.display = 'block';
-                showNotification('❌ Billet introuvable!', 'error');
-                document.getElementById('scan-serial').value = '';
-                return;
-            }
-
-            if (tickets[ticketIndex].scanned) {
-                resultBox.className = 'fraud';
-                resultBox.innerHTML = `<i class="fas fa-exclamation-triangle"></i> 🚨 FRAUDE DÉTECTÉE<br>Déjà scanné!<br><strong>${tickets[ticketIndex].nom}</strong>`;
-                resultBox.style.display = 'block';
-                showNotification('🚨 FRAUDE: Billet déjà utilisé!', 'error', 5000);
-                document.getElementById('scan-serial').value = '';
-                return;
-            }
-
-            tickets[ticketIndex].scanned = true;
-            tickets[ticketIndex].scannedAt = new Date().toLocaleString('fr-FR');
-            localStorage.setItem('kermesse_tickets', JSON.stringify(tickets));
-
-            let history = JSON.parse(localStorage.getItem('kermesse_scan_history'));
-            history.push({
-                nom: tickets[ticketIndex].nom,
-                type: tickets[ticketIndex].type,
-                serial: serial,
-                scannedAt: new Date().toLocaleString('fr-FR')
-            });
-            localStorage.setItem('kermesse_scan_history', JSON.stringify(history));
-
-            resultBox.className = 'success';
-            resultBox.innerHTML = `<i class="fas fa-check-circle"></i> ✅ ACCÈS AUTORISÉ<br><strong>${tickets[ticketIndex].nom}</strong><br>${tickets[ticketIndex].type}`;
-            resultBox.style.display = 'block';
-
-            createConfetti();
-            showNotification(`✓ ${tickets[ticketIndex].nom} - Accès autorisé!`, 'success');
-            document.getElementById('scan-serial').value = '';
-
-            updateScanHistory();
-            refreshAdminData();
-        }
-
-        // ==================== CAMERA SCANNER ====================
-        let cameraActive = false;
-
-        function toggleCameraScanner() {
-            const cameraScannerDiv = document.getElementById('camera-scanner');
-            const toggleBtn = document.getElementById('toggle-camera-btn');
-
-            if (!cameraActive) {
-                cameraScannerDiv.style.display = 'block';
-                toggleBtn.innerHTML = '<i class="fas fa-times"></i> Désactiver Caméra';
-                toggleBtn.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
-                toggleBtn.style.borderColor = '#dc3545';
-                
-                const video = document.getElementById('camera-stream');
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                    .then(stream => {
-                        video.srcObject = stream;
-                        cameraActive = true;
-                        scanQRFromCamera();
-                    })
-                    .catch(err => {
-                        showNotification('❌ Impossible d\'accéder à la caméra!', 'error');
-                        cameraScannerDiv.style.display = 'none';
-                        toggleBtn.innerHTML = '<i class="fas fa-camera"></i> Activer Caméra';
-                    });
-            } else {
-                cameraScannerDiv.style.display = 'none';
-                toggleBtn.innerHTML = '<i class="fas fa-camera"></i> Activer Caméra';
-                toggleBtn.style.background = '';
-                toggleBtn.style.borderColor = '';
-                
-                const video = document.getElementById('camera-stream');
-                if (video.srcObject) {
-                    video.srcObject.getTracks().forEach(track => track.stop());
-                }
-                cameraActive = false;
-            }
-        }
-
-        function scanQRFromCamera() {
-            const video = document.getElementById('camera-stream');
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            const scanLoop = setInterval(() => {
-                if (!cameraActive) {
-                    clearInterval(scanLoop);
+            dbRefs.tickets.orderByChild('serial').equalTo(serial).once('value', snapshot => {
+                if (!snapshot.exists()) {
+                    resultBox.className = 'error';
+                    resultBox.innerHTML = '<i class="fas fa-times-circle"></i> ❌ BILLET INTROUVABLE';
+                    resultBox.style.display = 'block';
+                    showNotification('❌ Billet introuvable!', 'error');
+                    document.getElementById('scan-serial').value = '';
                     return;
                 }
 
-                if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    ctx.drawImage(video, 0, 0);
+                let foundTicket = false;
+                let ticketKey = null;
+                let ticketData = null;
 
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-                    if (code) {
-                        const qrData = code.data;
-                        if (qrData.includes('LMAT-KERMESSE')) {
-                            const parts = qrData.split('|');
-                            if (parts.length >= 2) {
-                                const serial = parts[1];
-                                processQRScan(serial);
-                                clearInterval(scanLoop);
-                            }
-                        }
-                    }
-                }
-            }, 500);
-        }
-
-        function processQRScan(serial) {
-            const resultBox = document.getElementById('camera-scan-result');
-
-            let tickets = JSON.parse(localStorage.getItem('kermesse_tickets'));
-            const ticketIndex = tickets.findIndex(t => t.serial === serial);
-
-            if (ticketIndex === -1) {
-                resultBox.className = 'error';
-                resultBox.innerHTML = '<i class="fas fa-times-circle"></i> ❌ BILLET INTROUVABLE';
-                resultBox.style.display = 'block';
-                return;
-            }
-
-            if (tickets[ticketIndex].scanned) {
-                resultBox.className = 'fraud';
-                resultBox.innerHTML = `<i class="fas fa-exclamation-triangle"></i> 🚨 FRAUDE<br><strong>${tickets[ticketIndex].nom}</strong><br>Déjà scanné!`;
-                resultBox.style.display = 'block';
-                return;
-            }
-
-            tickets[ticketIndex].scanned = true;
-            tickets[ticketIndex].scannedAt = new Date().toLocaleString('fr-FR');
-            localStorage.setItem('kermesse_tickets', JSON.stringify(tickets));
-
-            let history = JSON.parse(localStorage.getItem('kermesse_scan_history'));
-            history.push({
-                nom: tickets[ticketIndex].nom,
-                type: tickets[ticketIndex].type,
-                serial: serial,
-                scannedAt: new Date().toLocaleString('fr-FR'),
-                method: 'QR Code'
-            });
-            localStorage.setItem('kermesse_scan_history', JSON.stringify(history));
-
-            resultBox.className = 'success';
-            resultBox.innerHTML = `<i class="fas fa-check-circle"></i> ✅ ACCÈS AUTORISÉ<br><strong>${tickets[ticketIndex].nom}</strong><br>${tickets[ticketIndex].type}`;
-            resultBox.style.display = 'block';
-
-            createConfetti();
-            showNotification(`✓ ${tickets[ticketIndex].nom} - QR Code validé!`, 'success');
-
-            updateScanHistory();
-            refreshAdminData();
-
-            setTimeout(() => {
-                if (cameraActive) {
-                    resultBox.style.display = 'none';
-                    scanQRFromCamera();
-                }
-            }, 2500);
-        }
-
-        function updateScanHistory() {
-            const history = JSON.parse(localStorage.getItem('kermesse_scan_history'));
-            const historyBox = document.getElementById('scan-history-log');
-
-            historyBox.innerHTML = '';
-            if (history.length === 0) {
-                historyBox.innerHTML = '<p style="text-align: center; color: #666;">Aucun scan.</p>';
-            } else {
-                [...history].reverse().slice(0, 12).forEach(h => {
-                    historyBox.innerHTML += `
-                        <div class="scan-item">
-                            <div>
-                                <strong style="color: var(--success);">${h.nom}</strong><br>
-                                <small style="color: var(--light-text);">${h.type}</small><br>
-                                <small style="color: #666;">${h.scannedAt}</small>
-                            </div>
-                        </div>
-                    `;
+                snapshot.forEach(childSnapshot => {
+                    foundTicket = true;
+                    ticketKey = childSnapshot.key;
+                    ticketData = childSnapshot.val();
                 });
-            }
+
+                if (ticketData.scanned) {
+                    resultBox.className = 'fraud';
+                    resultBox.innerHTML = `<i class="fas fa-exclamation-triangle"></i> 🚨 FRAUDE DÉTECTÉE<br>Déjà scanné!<br><strong>${ticketData.nom}</strong>`;
+                    resultBox.style.display = 'block';
+                    showNotification('🚨 FRAUDE: Billet déjà utilisé!', 'error', 5000);
+                    document.getElementById('scan-serial').value = '';
+                    return;
+                }
+
+                // Marquer comme scanné
+                dbRefs.tickets.child(ticketKey).update({
+                    scanned: true,
+                    scannedAt: new Date().toLocaleString('fr-FR')
+                });
+
+                resultBox.className = 'success';
+                resultBox.innerHTML = `<i class="fas fa-check-circle"></i> ✅ ACCÈS AUTORISÉ<br><strong>${ticketData.nom}</strong><br>${ticketData.type}`;
+                resultBox.style.display = 'block';
+
+                createConfetti();
+                showNotification(`✓ ${ticketData.nom} - Accès autorisé!`, 'success');
+                document.getElementById('scan-serial').value = '';
+            });
         }
 
         // ==================== INIT ====================
         document.addEventListener('DOMContentLoaded', () => {
             refreshAdminData();
-            updateScanHistory();
         });
     </script>
 </body>
